@@ -22,8 +22,8 @@ conn = st.connection("supabase", type=SupabaseConnection)
 email_usuario = st.text_input("📧 Introduce tu correo electrónico para ver tus datos:")
 
 if email_usuario:
-    # Buscar el perfil
-    res_perfil = conn.query("*", table="profiles", ttl=0).eq("email", email_usuario).execute()
+    # 1. Buscar el perfil (Cambio de sintaxis aquí)
+    res_perfil = conn.client.table("profiles").select("*").eq("email", email_usuario).execute()
     
     if res_perfil.data:
         user = res_perfil.data[0]
@@ -36,7 +36,7 @@ if email_usuario:
             nueva_cedula = st.text_input("Tu número de Cédula/ID:", value=cedula_actual)
             
             if st.button("Guardar Cédula"):
-                conn.table("profiles").update({"cedula": nueva_cedula}).eq("id", user['id']).execute()
+                conn.client.table("profiles").update({"cedula": nueva_cedula}).eq("id", user['id']).execute()
                 st.success("¡Cédula actualizada! Ya puedes ir al bot.")
                 st.rerun()
 
@@ -44,8 +44,12 @@ if email_usuario:
         st.divider()
         st.subheader("💰 Tus Movimientos Recientes")
         
-        # Traer transacciones vinculadas al UUID del usuario
-        res_trans = conn.query("*", table="transacciones", ttl=0).eq("user_id", user['id']).order("created_at", desc=True).execute()
+        # Traer transacciones (Cambio de sintaxis aquí)
+        res_trans = conn.client.table("transacciones").select("*").eq("user_id", user['id']).order("created_at", desc=True).execute()
+        
+        if res_trans.data:
+            st.dataframe(res_trans.data, use_container_width=True, hide_index=True)
+            # ... el resto del código de los totales sigue igual ...
         
         if res_trans.data:
             # Mostrar tabla bonita
